@@ -1,0 +1,22 @@
+# Review the platform's price before creating this persistent, paid service.
+# Saving/pushing this file does NOT provision or purchase resources.
+services:
+  - type: web
+    name: taiwan-stock-lab
+    runtime: python
+    plan: starter
+    autoDeploy: false
+    buildCommand: python -m pip install -r requirements.txt
+    startCommand: python -m stocklab.production
+    healthCheckPath: /healthz
+    disk:
+      name: stocklab-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.14
+      - key: STOCKLAB_HOME
+        value: /var/data/stocklab
+      - key: STOCKLAB_API_TOKEN
+        generateValue: true

@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>台股研究室 · Stock Lab</title>
+    <meta name="theme-color" content="#122e26" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="manifest" href="/static/manifest.webmanifest" />
+    <link rel="icon" href="/static/icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/static/style.css" />
+    <link rel="stylesheet" href="/static/app-experience.css" />
+    <script src="/static/app.js" defer></script>
+    <script src="/static/access.js" defer></script>
+    <script src="/static/quality.js" defer></script>
+    <script src="/static/research.js" defer></script>
+  </head>
+  <body>
+    <aside>
+      <a class="brand" href="#"
+        ><span class="logo">研</span
+        ><span>台股研究室<small>TAIWAN STOCK LAB</small></span></a
+      >
+      <nav>
+        <a href="#research-home">研究首頁</a
+        ><a href="#conversation">對話驗證</a> <a href="#data">01　資料工作台</a
+        ><a href="#strategy">02　條件與回測</a
+        ><a href="#results">03　研究報告</a><a href="#automation">04　自動化</a>
+      </nav>
+      <div class="aside-note">
+        <span class="dot"></span> 本地計算 · 無 LLM 呼叫
+        <p>資料留在自己的主機，參數、版本與研究結果持續保存。</p>
+        <button id="token-btn" class="ghost">設定此瀏覽器存取金鑰</button>
+      </div>
+    </aside>
+    <main>
+      <header>
+        <div>
+          <span class="eyebrow">PERSONAL RESEARCH WORKSPACE</span>
+          <h1>今天，想驗證哪個想法？</h1>
+          <p>用一句話提出條件，讓資料回答；研究與紀錄都留在同一個地方。</p>
+        </div>
+        <div class="header-tools">
+          <button id="login-open" class="ghost">研究室通行碼</button>
+          <button id="install-app" class="ghost">加入主畫面</button>
+          <div class="version" id="version">連線中</div>
+        </div>
+      </header>
+      <div id="notice" role="status" aria-live="polite"></div>
+      <div class="banner">
+        <strong>研究開發版</strong
+        ><span
+          >目前支援股票／ETF
+          現股日線回測。完整市場歷史資料、公司行動與期貨交易模型尚未完成；示範資料不代表市場表現。</span
+        >
+      </div>
+      <div class="stats">
+        <div>
+          <small>本地資料版本（最新）</small><b id="dataset-count">—</b>
+        </div>
+        <div><small>已完成工作</small><b id="done-count">—</b></div>
+        <div>
+          <small>計算使用的 AI Token</small><b>0<em>每次回測</em></b>
+        </div>
+        <div><small>排程時區</small><b class="small-b">Asia/Taipei</b></div>
+      </div>
+      <section id="research-home">
+        <div class="section-title">
+          <div>
+            <span class="eyebrow">RESEARCH OVERVIEW</span>
+            <h2>候選條件觀察</h2>
+          </div>
+          <a class="subtle-link" href="#results">查看完整研究紀錄 →</a>
+        </div>
+        <div class="card evidence-toolbar">
+          <div>
+            <strong>依驗證段勝率排序</strong>
+            <p class="muted">一起看成交筆數、報酬與回撤；測試段不參與排序。</p>
+          </div>
+          <label
+            >訓練／驗證各至少<select id="rank-min-trades">
+              <option value="5">5 筆交易</option>
+              <option value="10" selected>10 筆交易</option>
+              <option value="20">20 筆交易</option>
+              <option value="30">30 筆交易</option>
+            </select></label
+          ><label class="check"
+            ><input id="rank-show-demo" type="checkbox" />顯示合成示範</label
+          >
+        </div>
+        <div id="candidate-cards" class="candidate-grid">
+          <div class="card empty">正在讀取研究紀錄…</div>
+        </div>
+        <p id="evidence-scope" class="muted"></p>
+        <div id="research-overview" class="overview-strip"></div>
+      </section>
+      <section id="conversation">
+        <div class="section-title">
+          <div>
+            <span class="eyebrow">ASK · VERIFY · KEEP EVIDENCE</span>
+            <h2>和研究助理聊聊</h2>
+          </div>
+          <span id="connection-state" class="tag">連線中</span>
+        </div>
+        <div class="chat-workspace card">
+          <div class="chat-intro">
+            <span class="chat-avatar">研</span>
+            <div>
+              <strong>把你的想法，變成可檢查的條件。</strong>
+              <p class="muted">
+                本地條件助手 · 不呼叫模型
+                API。先預覽規則與成本，確認後開始；不理解的條件會請你補充。
+              </p>
+            </div>
+          </div>
+          <div
+            id="research-chat"
+            class="chat-log"
+            role="log"
+            aria-live="polite"
+            aria-label="研究對話"
+          ></div>
+          <div class="chat-suggestions">
+            <button
+              type="button"
+              data-prompt="20日均線高於60日均線進場，20日均線低於60日均線出場"
+            >
+              均線趨勢</button
+            ><button type="button" data-prompt="RSI低於30進場，RSI高於70出場">
+              RSI 條件</button
+            ><button type="button" data-prompt="找進場條件">找候選條件</button
+            ><button type="button" data-prompt="滾動驗證">滾動驗證</button>
+          </div>
+          <form id="chat-form">
+            <label class="chat-scope"
+              >使用資料<select id="chat-dataset">
+                <option value="">使用資料工作台的勾選項目</option>
+              </select></label
+            ><label for="chat-input" class="visually-hidden">輸入研究條件</label
+            ><textarea
+              id="chat-input"
+              rows="3"
+              maxlength="2000"
+              placeholder="例如：0050，20日均線高於60日均線進場，20日均線低於60日均線出場，停損5%。請勿輸入金鑰。"
+              required
+            ></textarea>
+            <div class="composer-bottom">
+              <a href="#strategy" class="subtle-link">調整資金與成本</a
+              ><button id="chat-send" type="submit">整理並預覽條件 ↗</button>
+            </div>
+          </form>
+          <p class="chat-footnote">
+            關閉此頁不會刪除已保存的工作。運算在研究主機執行，仍需主機與服務持續運作；離線只能開啟介面。
+          </p>
+        </div>
+      </section>
+      <section id="data">
+        <div class="section-title">
+          <div>
+            <span class="eyebrow">01 / DATA</span>
+            <h2>資料工作台</h2>
+          </div>
+          <button id="refresh" class="ghost">重新整理</button>
+        </div>
+        <div class="two">
+          <form class="card" id="download-form">
+            <h3>下載台股日線</h3>
+            <p class="muted">
+              FinMind 原始 OHLCV；只下載昨日以前資料。ETF
+              請自行選對類型。來源配額與授權依供應商規定。
+            </p>
+            <div class="fields">
+              <label
+                >商品代號<input
+                  name="symbol"
+                  placeholder="2330 / 0050"
+                  required
+                  pattern="[A-Za-z0-9]{1,12}" /></label
+              ><label
+                >商品類型<select name="asset_type">
+                  <option value="stock">股票</option>
+                  <option value="etf">ETF</option>
+                </select></label
+              ><label
+                >起始日期<input
+                  name="start"
+                  type="date"
+                  value="2018-01-01"
+                  required /></label
+              ><label>結束日期（可留空）<input name="end" type="date" /></label>
+            </div>
+            <button type="submit">下載並建立資料版本</button>
+          </form>
+          <form class="card" id="import-form">
+            <h3>匯入自己的歷史資料</h3>
+            <p class="muted">
+              CSV
+              欄位：date,open,high,low,close,volume。日期由舊至新、不可重複；volume
+              可省略。期貨及指數目前僅供關聯分析。
+            </p>
+            <div class="fields">
+              <label
+                >商品識別<input
+                  name="symbol"
+                  placeholder="TX_202609"
+                  required
+                  pattern="[A-Za-z0-9_^.=\-]{1,30}" /></label
+              ><label
+                >商品類型<select name="asset_type">
+                  <option value="stock">股票</option>
+                  <option value="etf">ETF</option>
+                  <option value="index">指數</option>
+                  <option value="future">期貨</option>
+                </select></label
+              ><label
+                >價格口徑<select name="price_basis">
+                  <option value="raw">原始價格（未含息）</option>
+                  <option value="adjusted">提供者已還原 OHLC</option>
+                </select></label
+              ><label
+                >CSV 檔案<input
+                  name="file"
+                  type="file"
+                  accept=".csv,text/csv"
+                  required
+              /></label>
+            </div>
+            <button type="submit" class="secondary">檢查並匯入</button>
+          </form>
+        </div>
+        <div class="card table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>選取</th>
+                <th>商品 / 資料來源</th>
+                <th>涵蓋區間</th>
+                <th>筆數</th>
+                <th>價格口徑</th>
+                <th>品質狀態</th>
+              </tr>
+            </thead>
+            <tbody id="datasets">
+              <tr>
+                <td colspan="6" class="empty">
+                  尚無資料。請下載或匯入；合成示範需由 CLI 明確建立。
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section id="data-quality">
+        <div class="section-title">
+          <div>
+            <span class="eyebrow">DATA / CHECK BEFORE RESEARCH</span>
+            <h2>資料檢查與研究依據</h2>
+          </div>
+        </div>
+        <div class="two">
+          <form class="card" id="calendar-form">
+            <h3>匯入明示交易日曆</h3>
+            <p class="muted">
+              CSV 逐日列出 date,is_open（0 休市／1 開市），可加
+              reason。包含休市日，不以星期一到五猜測開市。
+            </p>
+            <div class="fields">
+              <label
+                >聲明市場<select name="market">
+                  <option value="TWSE">上市 TWSE</option>
+                  <option value="TPEX">上櫃 TPEx</option>
+                  <option value="TAIFEX">期貨 TAIFEX（僅日期比對）</option>
+                </select></label
+              ><label
+                >日曆來源與版本<input
+                  name="source"
+                  maxlength="200"
+                  required
+                  placeholder="提供者、年份與口徑；勿填金鑰" /></label
+              ><label
+                >日曆 CSV<input
+                  name="file"
+                  type="file"
+                  accept=".csv,text/csv"
+                  required
+              /></label>
+            </div>
+            <button class="secondary" type="submit">保存日曆版本</button>
+            <p class="muted">
+              匯入不等於官方驗證；請自行核對來源、歷史修訂與商品市場身分。
+            </p>
+          </form>
+          <form class="card" id="audit-form">
+            <h3>檢查一份價格資料</h3>
+            <div class="fields">
+              <label
+                >價格版本<select id="quality-dataset" required></select></label
+              ><label
+                >日曆版本<select id="quality-calendar">
+                  <option value="">不套日曆，僅基本旗標</option>
+                </select></label
+              ><label
+                >公司行動版本<select id="quality-actions">
+                  <option value="">不套公司行動</option>
+                </select></label
+              >
+            </div>
+            <button type="submit">建立資料檢查報告</button>
+            <p class="muted">
+              比對開市日缺價、休市日多價、日曆範圍、跳價與零量；可能的停牌需另取得證據，不能自動補值。
+            </p>
+            <label class="check"
+              ><input
+                id="require-audit"
+                type="checkbox"
+              />手動回測／聊天要求日期與版本檢查通過</label
+            >
+            <p class="muted">
+              使用此價格／事件版本最近明確檢查的報告；不會以較早通過的報告蓋掉新問題。新價格須重新檢查；此選項不代表完整資料認證，也不適用每日更新排程／關聯工作。
+            </p>
+          </form>
+        </div>
+        <div class="card" id="quality-report">
+          <p class="muted">
+            尚未選定檢查報告。未檢查的資料仍可能缺交易日或公司行動，請保留探索性解讀。
+          </p>
+        </div>
+      </section>
+      <section id="action-data">
+        <div class="section-title">
+          <div>
+            <span class="eyebrow">DATA / CORPORATE ACTIONS</span>
+            <h2>股利與拆股事件</h2>
+          </div>
+        </div>
+        <form class="card" id="actions-form">
+          <p class="muted">
+            搭配原始價格，匯入已查核的公司行動。事件綁定價格版本；不得套用到已還原價格。這不等於事件完整性已驗證。
+          </p>
+          <div class="fields">
+            <label
+              >價格資料版本<select
+                name="dataset_id"
+                id="action-dataset"
+                required
+              ></select
+            ></label>
+            <label
+              >來源與口徑<input
+                name="source"
+                required
+                maxlength="200"
+                placeholder="資料供應商／官方紀錄及版本；請勿填金鑰"
+            /></label>
+            <label
+              >公司行動 CSV<input
+                name="file"
+                type="file"
+                accept=".csv,text/csv"
+                required
+            /></label>
+            <label class="check"
+              ><input
+                id="use-actions"
+                type="checkbox"
+                checked
+              />回測使用所選資料最新的已匯入事件版本</label
+            >
+          </div>
+          <button class="secondary" type="submit">
+            驗證並保存公司行動版本
+          </button>
+          <details>
+            <summary>CSV 格式與帳務假設</summary>
+            <pre>
+ex_date,kind,announced_date,cash_per_share,pay_date,split_ratio
+2024-01-03,dividend,2023-12-20,2.5,2024-02-01,
+2024-06-03,split,2024-05-01,,,4</pre
+            >
+            <p class="muted">
+              以上是假設格式，不是市場資料。dividend 金額為事件前每股現金；split
+              是新股數／舊股數。股利除息日認列應收，付款日才可動用，不自動再投資；拆併股產生零碎股會停止。暫不含股票股利、減資退款或股利個人稅費。使用事件時，價格條件採含息指數口徑，成交仍用原始價格。每日自動更新目前不自動沿用手動事件。
+            </p>
+          </details>
+          <p id="actions-summary" class="muted"></p>
+        </form>
+      </section>
+      <section id="strategy">
+        <div class="section-title">
+          <div>
+            <span class="eyebrow">02 / HYPOTHESIS</span>
+            <h2>你的進出場條件</h2>
+          </div>
+          <span class="tag">收盤訊號 → 次日開盤</span>
+        </div>
+        <div class="two">
+          <div class="card">
+            <div class="row">
+              <h3>進場</h3>
+              <select id="entry-mode" aria-label="進場組合">
+                <option value="all">全部符合</option>
+                <option value="any">任一符合</option>
+              </select>
+            </div>
+            <div id="entry-rules"></div>
+            <button class="ghost" id="add-entry">＋ 新增進場條件</button>
+            <hr />
+            <div class="row">
+              <h3>出場</h3>
+              <select id="exit-mode" aria-label="出場組合">
+                <option value="any">任一符合</option>
+                <option value="all">全部符合</option>
+              </select>
+            </div>
+            <div id="exit-rules"></div>
+            <button class="ghost" id="add-exit">＋ 新增出場條件</button>
+            <div class="fields spaced">
+              <label
+                >最長持有交易日（可留空）<input
+                  id="max-hold"
+                  type="number"
+                  min="1"
+                  max="2520" /></label
+              ><label
+                >前日收盤停損 %（可留空）<input
+                  id="stop-loss"
+                  type="number"
+                  min="0.01"
+                  max="99"
+                  step="0.1"
+              /></label>
+            </div>
+            <p class="muted">
+              停損於下一日開盤執行，跳空可能超過門檻。出場後最快下一個交易日再進場。
+            </p>
+          </div>
+          <div class="card">
+            <h3>資金與交易成本</h3>
+            <div class="fields">
+              <label
+                >初始資金 NT$<input
+                  id="capital"
+                  type="number"
+                  value="1000000"
+                  min="1000" /></label
+              ><label
+                >單邊手續費 %<input
+                  id="commission"
+                  type="number"
+                  value="0.1425"
+                  step="0.0001"
+                  min="0" /></label
+              ><label
+                >最低單邊手續費 NT$<input
+                  id="min-fee"
+                  type="number"
+                  value="20"
+                  min="0" /></label
+              ><label
+                >單邊滑價 %<input
+                  id="slippage"
+                  type="number"
+                  value="0.05"
+                  step="0.01"
+                  min="0" /></label
+              ><label
+                >賣出稅率 %（空白採類型預設）<input
+                  id="sell-tax"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="股票 0.3 / ETF 0.1" /></label
+              ><label
+                >每次交易股數的整數單位<select id="lot-size">
+                  <option value="1">1 股（零股假設）</option>
+                  <option value="1000">1000 股（整張）</option>
+                </select></label
+              >
+            </div>
+            <p class="muted">
+              單一商品、全資金、只做多，無槓桿。每個商品獨立回測，並非多商品投資組合。特殊
+              ETF 稅制請覆寫。
+            </p>
+            <hr />
+            <h3>探索候選條件</h3>
+            <p class="muted">
+              至少 400 筆日線。固定 8 組均線候選，訓練 60% → 驗證 20% → 測試
+              20%；候選搜尋使用固定均線條件，不使用左側自訂規則。
+            </p>
+            <h3>滾動樣本外驗證</h3>
+            <div class="fields">
+              <label
+                >訓練交易日<input
+                  id="wf-train"
+                  type="number"
+                  min="126"
+                  max="2520"
+                  value="252"
+              /></label>
+              <label
+                >驗證交易日<input
+                  id="wf-validation"
+                  type="number"
+                  min="30"
+                  max="504"
+                  value="63"
+              /></label>
+              <label
+                >測試交易日<input
+                  id="wf-test"
+                  type="number"
+                  min="30"
+                  max="504"
+                  value="63"
+              /></label>
+            </div>
+            <p class="muted">
+              固定均線候選，至少兩個不重疊測試段。每段獨立資金與期末平倉；沒有合格條件時保留現金，不拼成複利績效。
+            </p>
+          </div>
+        </div>
+        <div class="actions">
+          <button id="run-backtest">驗證我的條件</button
+          ><button id="run-research" class="secondary">搜尋均線候選條件</button
+          ><button id="run-walkforward" class="secondary">執行滾動驗證</button
+          ><button id="run-correlation" class="ghost">探索跨商品關聯</button
+          ><span class="muted">使用上方選取的資料</span>
+        </div>
+      </section>
+      <section id="results">
+        <div class="section-title">
+          <div>
+            <span class="eyebrow">03 / EVIDENCE</span>
+            <h2>研究報告</h2>
+          </div>
+          <span class="muted">保存資料指紋、成本、規則與成交明細</span>
+        </div>
+        <div class="two report-grid">
+          <div class="card">
+            <h3>工作紀錄</h3>
+            <div id="jobs" class="muted">尚無工作</div>
+          </div>
+          <div class="card" id="report">
+            <div class="empty">
+              <h3>先提出一個假設</h3>
+              <p>
+                選取資料、設定條件後開始回測。結果會保存在主機，換電腦登入同一主機仍可查看。
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="automation">
+        <div class="section-title">
+          <div>
+            <span class="eyebrow">04 / AUTOMATION</span>
+            <h2>讓程式持續工作</h2>
+          </div>
+        </div>
+        <div class="two">
+          <form class="card" id="schedule-form">
+            <h3>每日更新與批次研究</h3>
+            <label class="check"
+              ><input
+                id="schedule-enabled"
+                type="checkbox"
+              />啟用每日排程</label
+            >
+            <div class="fields spaced">
+              <label
+                >執行時間（台北）<input
+                  id="schedule-time"
+                  type="time"
+                  value="18:00"
+                  required /></label
+              ><label
+                >工作內容<input
+                  disabled
+                  value="更新 FinMind 日線 → 候選條件研究"
+              /></label>
+            </div>
+            <label class="check"
+              ><input
+                id="schedule-backup"
+                type="checkbox"
+                checked
+              />每日工作後建立本地備份（保留最近 7 份）</label
+            >
+            <p class="muted">
+              儲存時採用目前選取資料與成本。CSV
+              只研究、不自動更新。週一至五執行，假日由資料來源回應無新資料。需主機與
+              APP
+              持續運行；開發環境不保證全天運作。本地備份不防主機或磁碟整體遺失，異地備份仍需設定。
+            </p>
+            <button class="secondary" type="submit">儲存排程</button>
+            <p id="schedule-summary" class="muted"></p>
+          </form>
+          <div class="card">
+            <h3>不中斷的研究脈絡</h3>
+            <ul class="plain-list">
+              <li>
+                <b>零逐次 AI 成本</b
+                ><span>下載、指標、回測及排程完全由本地 Python 執行。</span>
+              </li>
+              <li>
+                <b>工作與資料版本保存</b
+                ><span
+                  >程序重啟後可重新領取中斷工作；相同版本與參數直接沿用既有工作。</span
+                >
+              </li>
+              <li>
+                <b>跨電腦，連同一個研究主機</b
+                ><span
+                  >正式部署仍需固定主機、登入／HTTPS
+                  與異地備份；目前僅在本機介面啟動。</span
+                >
+              </li>
+              <li>
+                <b>延續開發，不重讀全部資料</b
+                ><span
+                  >CLI context
+                  會產生精簡狀態摘要；程式不會自動開新聊天或消耗模型 API。</span
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+      <nav class="mobile-tabs" aria-label="手機功能導覽">
+        <a href="#research-home">概覽</a><a href="#conversation">對話</a
+        ><a href="#data">資料</a><a href="#results">報告</a
+        ><a href="#automation">自動化</a>
+      </nav>
+      <dialog id="access-dialog">
+        <form id="access-form">
+          <h3>進入你的研究室</h3>
+          <p class="muted">
+            輸入你在部署平台設定的通行碼。只用於這個研究室，不是 ChatGPT
+            密碼；請勿貼到聊天裡。
+          </p>
+          <label
+            >研究室通行碼<input
+              id="access-key"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              maxlength="2048"
+              required
+          /></label>
+          <p id="access-error" class="error-text" role="status"></p>
+          <div class="row">
+            <button type="submit">登入研究室</button
+            ><button id="access-cancel" type="button" class="ghost">稍後</button
+            ><button id="access-logout" type="button" class="ghost">
+              清除此分頁登入
+            </button>
+          </div>
+        </form>
+      </dialog>
+      <dialog id="install-help">
+        <h3>像 APP 一樣開啟研究室</h3>
+        <p>手機瀏覽器開啟已部署的研究室網址後：</p>
+        <ul>
+          <li>iPhone：Safari「分享」→「加入主畫面」。</li>
+          <li>Android：瀏覽器選單 →「安裝應用程式」或「加入主畫面」。</li>
+        </ul>
+        <p class="muted">
+          需瀏覽器支援及可連線的服務網址。加入主畫面不會讓手機接手背景回測。
+        </p>
+        <button id="close-install-help">知道了</button>
+      </dialog>
+      <footer>
+        研究工具不等於交易訊號。請先查核資料口徑、成交假設與樣本外證據。<span
+          >STOCK / v0.4</span
+        >
+      </footer>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,19 @@
+# Free UI/research demonstration only: can sleep, storage can reset.
+services:
+  - type: web
+    name: taiwan-stock-lab-preview
+    runtime: python
+    plan: free
+    autoDeploy: false
+    buildCommand: python -m pip install -r requirements.txt
+    startCommand: python -m stocklab.production
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.14
+      - key: STOCKLAB_DEMO_MODE
+        value: "1"
+      - key: STOCKLAB_HOME
+        value: /tmp/stocklab-preview
+      - key: STOCKLAB_API_TOKEN
+        generateValue: true

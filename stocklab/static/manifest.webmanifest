@@ -1,0 +1,20 @@
+{
+  "id": "/",
+  "name": "台股研究室",
+  "short_name": "台股研究室",
+  "lang": "zh-Hant",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f3f5f3",
+  "theme_color": "#122e26",
+  "description": "個人台股策略驗證與研究紀錄",
+  "icons": [
+    {
+      "src": "/static/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
