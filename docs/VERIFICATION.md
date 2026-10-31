@@ -69,4 +69,5 @@ FinMind 真實請求收到代理 `403 Forbidden`，當前允許清單尚未套�
 - 錯誤通行碼拒絕、正確登入後取得 3 組合成資料、體驗警示可見、文件寬度 390px，無 page error。
 - 測試服務已停止，沒有建立公開主機；證據在 `.stocklab/verification/mobile-access.json`、mobile-login.png、mobile-host-preview.png。
 - Render 原生 Python 範例設定已由官方 render-examples/fastapi 的 render.yaml 核對；本專案尚未實際在 Render 建置或產生網址。
-- GitHub 原生 Git 存取及新增部署分支 dry-run 成功，API GraphQL 存取遭 Forbidden；不以此推論缺少 Git token。
+- GitHub 原生 Git 實際推送 `codex/mobile-access` 成功；API GraphQL 存取遭 Forbidden，不以此推論缺少 Git token。
+- 只保存程式與文件；資料／結果目錄及機密不在提交中。原始碼在 GitHub 不等於已取得 APP 網址。
