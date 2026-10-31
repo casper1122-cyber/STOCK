@@ -10,13 +10,13 @@
 - 固定 Linux 主機＋持久磁碟，Python 3.12+，執行 scripts/setup.sh。
 - STOCKLAB_HOME 指向持久磁碟。以 systemd 等服務管理程式執行 scripts/start.sh，設定重啟。
 - API 維持 loopback，由 HTTPS 反向代理加上個人登入／存取控制；不要直接公開無認證的服務。
-- 程式支援 STOCKLAB_API_TOKEN 的單一 Bearer 金鑰驗證，瀏覽器可按側欄設定。
+- 程式支援 STOCKLAB_API_TOKEN 的單一 Bearer 金鑰驗證，瀏覽器可按「研究室通行碼」輸入。
   這是個人用服務金鑰，不是完整使用者帳號／權限系統。Apps Script 可使用同一受限服務端點。
 - 反向代理外部 HTTPS 來源需以 STOCKLAB_PUBLIC_ORIGIN 明確設定，例如 https://你的研究主機網域，
   APP 只額外信任這個設定的 Origin，不信任任意 forwarded headers。正式部署仍需端到端驗證。
 - 排程只在主機開機且服務運行時有效；硬碟、主機或雲端任務結束會中止運算。
 
-部署前需要你選擇既有 NAS／家用長開電腦或雲端主機。未經明確授權不購買雲端資源。
+使用者已選擇常駐雲端版、先確認月費再開通；目前的 Render 設定與費用核對見 [手機部署說明](PHONE_ACCESS.md)。未經明確授權不購買雲端資源。
 正式部署的登入、HTTPS、備份復原與主機重啟驗證尚未完成，不能稱為正式可用。
 
 ## 換主機或多機運算
