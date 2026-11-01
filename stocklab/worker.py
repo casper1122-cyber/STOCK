@@ -2,6 +2,7 @@
 import fcntl
 import json
 import logging
+import os
 import time
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -57,6 +58,8 @@ def execute(job):
 
 
 def scheduled(now=None):
+    if os.environ.get("STOCKLAB_EPHEMERAL_MODE")=="1" or os.environ.get("STOCKLAB_DEMO_MODE")=="1":
+        return
     config = storage.setting("schedule")
     if not config:
         return

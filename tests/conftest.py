@@ -10,6 +10,8 @@ def isolated(tmp_path, monkeypatch):
     monkeypatch.setenv("STOCKLAB_HOME", str(tmp_path / "lab"))
     monkeypatch.setenv("STOCKLAB_NO_WORKER", "1")
     monkeypatch.delenv("STOCKLAB_API_TOKEN", raising=False)
+    monkeypatch.delenv("STOCKLAB_EPHEMERAL_MODE", raising=False)
+    monkeypatch.delenv("STOCKLAB_DEMO_MODE", raising=False)
     storage.init()
 
 

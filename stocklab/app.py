@@ -2,8 +2,10 @@ import hmac
 import io
 import json
 import os
+import shutil
 import subprocess
 import sys
+import tempfile
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -11,6 +13,7 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
+from starlette.background import BackgroundTask
 
 from stocklab import ENGINE_VERSION, storage
 from stocklab.data import download, import_csv
@@ -50,7 +53,9 @@ async def guard(request: Request, call_next):
         if token and not hmac.compare_digest(request.headers.get("authorization", "").encode(), ("Bearer " + token).encode()):
             return JSONResponse({"detail": "請先輸入研究室通行碼"}, status_code=401,headers={"Cache-Control":"no-store"})
         if os.environ.get("STOCKLAB_DEMO_MODE")=="1" and request.method in ("POST","PUT") and request.url.path in ("/api/import","/api/download","/api/actions","/api/calendars","/api/schedule"):
-            return JSONResponse({"detail":"目前是免費體驗模式，只使用合成示範資料；正式研究需有持久磁碟，才能匯入行情及啟用排程。"},status_code=409,headers={"Cache-Control":"no-store"})
+            return JSONResponse({"detail":"目前是合成示範專用模式，不匯入行情或啟用排程；真實行情可使用免費研究版或自己的電腦。"},status_code=409,headers={"Cache-Control":"no-store"})
+        if os.environ.get("STOCKLAB_EPHEMERAL_MODE")=="1" and request.method in ("POST","PUT") and request.url.path=="/api/schedule":
+            return JSONResponse({"detail":"免費暫存主機可能休眠或重設，不啟用無人排程；請在自己的持久電腦執行排程。"},status_code=409,headers={"Cache-Control":"no-store"})
         # Browser writes must originate from this app; no cross-site form submissions.
         origin = request.headers.get("origin")
         permitted_origins = {str(request.base_url).rstrip("/")}
@@ -95,7 +100,20 @@ def health():
 
 @app.get("/app-info")
 def app_info():
-    return JSONResponse({"requires_key":bool(os.environ.get("STOCKLAB_API_TOKEN")),"demo_mode":os.environ.get("STOCKLAB_DEMO_MODE")=="1"},headers={"Cache-Control":"no-store"})
+    return JSONResponse({"requires_key":bool(os.environ.get("STOCKLAB_API_TOKEN")),"demo_mode":os.environ.get("STOCKLAB_DEMO_MODE")=="1","ephemeral_mode":os.environ.get("STOCKLAB_EPHEMERAL_MODE")=="1"},headers={"Cache-Control":"no-store"})
+
+
+@app.get("/api/backup")
+def download_backup():
+    from stocklab.backup import create_backup
+    directory=Path(tempfile.mkdtemp(prefix="stocklab-export-"))
+    try:
+        archive=create_backup(directory / "stocklab-backup.tar.gz")
+        return FileResponse(archive,media_type="application/gzip",filename=archive.name,
+                            background=BackgroundTask(shutil.rmtree,directory,ignore_errors=True))
+    except BaseException:
+        shutil.rmtree(directory,ignore_errors=True)
+        raise
 
 
 @app.get("/service-worker.js")
@@ -268,7 +286,10 @@ def summary(identifier: int):
 
 @app.get("/api/schedule")
 def get_schedule():
-    return {**(storage.setting("schedule") or Schedule().model_dump()), "backup_status": storage.setting("backup_status")}
+    config={**(storage.setting("schedule") or Schedule().model_dump()), "backup_status": storage.setting("backup_status")}
+    if os.environ.get("STOCKLAB_EPHEMERAL_MODE")=="1" or os.environ.get("STOCKLAB_DEMO_MODE")=="1":
+        config.update(enabled=False,available=False,unavailable_reason="免費暫存主機不啟用無人排程；可在自己的持久電腦執行。")
+    return config
 
 
 @app.put("/api/schedule")

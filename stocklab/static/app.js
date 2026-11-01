@@ -488,7 +488,13 @@ async function init() {
       ":" +
       String(schedule.minute).padStart(2, "0");
     $("#schedule-summary").textContent =
-      `已儲存 ${schedule.dataset_ids.length} 組資料；${schedule.enabled ? "啟用中" : "未啟用"}${schedule.backup_status?.error ? "；" + schedule.backup_status.error : ""}`;
+      schedule.available === false
+        ? schedule.unavailable_reason
+        : `已儲存 ${schedule.dataset_ids.length} 組資料；${schedule.enabled ? "啟用中" : "未啟用"}${schedule.backup_status?.error ? "；" + schedule.backup_status.error : ""}`;
+    if (schedule.available === false) {
+      $("#schedule-enabled").disabled = true;
+      $("#schedule-form button[type=submit]").disabled = true;
+    }
   } catch (e) {
     notice(e.message, true);
   }

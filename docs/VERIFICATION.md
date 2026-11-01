@@ -71,3 +71,14 @@ FinMind 真實請求收到代理 `403 Forbidden`，當前允許清單尚未套�
 - Render 原生 Python 範例設定已由官方 render-examples/fastapi 的 render.yaml 核對；本專案尚未實際在 Render 建置或產生網址。
 - GitHub 原生 Git 實際推送 `codex/mobile-access` 成功；API GraphQL 存取遭 Forbidden，不以此推論缺少 Git token。
 - 只保存程式與文件；資料／結果目錄及機密不在提交中。原始碼在 GitHub 不等於已取得 APP 網址。
+
+## 免費研究與個人主機（2026-11-01）
+
+- 完整套件 115 項通過，仍有 1 項已知 Starlette/httpx 棄用提示，未隱藏。
+- 新增免費模式驗證：強通行碼、無自動種入示範資料、CSV 匯入與既有引擎回測、舊排程不被啟動。
+- 備份 API 拒絕未登入、成功下載後移除臨時檔；完整備份還原後資料指紋及工作結果吻合，無環境金鑰檔。
+- 390px 真實 Chromium：錯碼拒絕、正確登入、匯入合成測試 CSV、畫面提交回測並完成、按鈕下載備份；無溢出／page error。
+- 瀏覽器所下載的壓縮檔另以 CLI 還原至全新目錄，確認保留 1 組行情與 1 個完成工作；不是市場研究證據。
+- 個人主機腳本實際啟動／重啟成功；金鑰檔權限 0600、重啟不重建，API 未登入拒絕，持久模式非免費暫存。
+- 證據：`.stocklab/verification/mobile-free-host.json`、mobile-free-host.png、free-host-restoration.json；備份屬本地合成測試，不進 Git。
+- 測試在隔離本機服務進行，服務已停止；Render 平台部署、Windows／WSL、手機 Tailscale 連線尚未驗證。

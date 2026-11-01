@@ -11,6 +11,7 @@ class Settings:
     origin: str
     data_home: Path
     demo_mode: bool
+    ephemeral_mode: bool = False
 
 
 def settings(environ=None):
@@ -32,11 +33,12 @@ def settings(environ=None):
         raise ValueError("對外研究服務需要背景 worker，不可停用")
     home=env.get("STOCKLAB_HOME")
     demo=env.get("STOCKLAB_DEMO_MODE")=="1"
+    ephemeral=env.get("STOCKLAB_EPHEMERAL_MODE")=="1"
     if not home:
-        if not demo:
+        if not demo and not ephemeral:
             raise ValueError("正式研究需明確設定 STOCKLAB_HOME 至持久磁碟")
-        home="/tmp/stocklab-preview"
-    return Settings(port,origin,Path(home).expanduser().resolve(),demo)
+        home="/tmp/stocklab-preview" if demo else "/tmp/stocklab-free"
+    return Settings(port,origin,Path(home).expanduser().resolve(),demo,ephemeral)
 
 
 def main():

@@ -1,22 +1,20 @@
-# Review the platform's price before creating this persistent, paid service.
-# Saving/pushing this file does NOT provision or purchase resources.
+# Free, temporary research host. Can sleep; storage can reset.
+# No persistent disk or paid service is configured. Export backups yourself.
 services:
   - type: web
     name: taiwan-stock-lab
     runtime: python
-    plan: starter
+    plan: free
     autoDeploy: false
     buildCommand: python -m pip install -r requirements.txt
     startCommand: python -m stocklab.production
     healthCheckPath: /healthz
-    disk:
-      name: stocklab-data
-      mountPath: /var/data
-      sizeGB: 1
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.14
       - key: STOCKLAB_HOME
-        value: /var/data/stocklab
+        value: /tmp/stocklab-free
+      - key: STOCKLAB_EPHEMERAL_MODE
+        value: "1"
       - key: STOCKLAB_API_TOKEN
         generateValue: true

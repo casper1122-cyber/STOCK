@@ -1,6 +1,7 @@
 # STOCK / Taiwan Stock Lab
 
 - Personal Taiwan-market research app. User-facing text is Traditional Chinese.
+- User requires free hosting/data/API paths (2026-11-01). Do not provision paid services or repeat monthly-fee approval questions. Prefer their own computer for durable research; the default Render deployment is free and ephemeral.
 - Read README.md and docs/STATUS.md first; run `.venv/bin/python -m stocklab context` for a bounded summary of local data and jobs. Do not read entire price datasets or old job output into chat unless needed.
 - For chat/PWA work read docs/CHAT_APP.md. Never execute unrecognized text constraints, rank with held-out outcomes, or put private API responses in offline caches. Do not load complete user chat histories by default.
 - Use the existing checkout. Cloud tasks are isolated; do not create a worktree unless explicitly requested.

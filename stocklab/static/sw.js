@@ -1,4 +1,4 @@
-const CACHE = "stocklab-shell-v04-mobile";
+const CACHE = "stocklab-shell-v04-free";
 const SHELL = [
   "/",
   "/static/style.css",
